@@ -1,4 +1,5 @@
 from datetime import datetime
+from http import HTTPStatus
 
 from aiogoogle import Aiogoogle
 
@@ -13,6 +14,15 @@ SHEET_ID = 0
 SHEET_TITLE = 'Лист1'
 SHEET_GRID_PROPERTY_ROW_COUNT = 100
 SHEET_GRID_PROPERTY_COLUMN_COUNT = 11
+ROW_COUNT_ERROR = (
+    f'Количество строк в созданной таблице {SHEET_GRID_PROPERTY_ROW_COUNT},'
+    'получено строк {count}!'
+)
+COLUMN_COUNT_ERROR = (
+    'Количество столбцов в созданной таблице '
+    f'{SHEET_GRID_PROPERTY_COLUMN_COUNT},'
+    'получено столбцов {count}!'
+)
 SPREADSHEET_BODY = dict(
     properties=dict(
         title=PROPERTY_TITLE,
@@ -79,21 +89,35 @@ async def spreadsheets_update_value(
         wrapper_services: Aiogoogle
 ) -> None:
     service = await wrapper_services.discover('sheets', 'v4')
-    table_values = TABLE_VALUE
+    table_values = [
+        *TABLE_VALUE,
+        *[
+            list(map(str, charity_project))
+            for charity_project in charity_projects
+        ]
+    ]
     table_values[0].append(datetime.now().strftime(FORMAT))
-    for charity_project in charity_projects:
-        new_row = [*charity_project]
-        table_values.append(new_row)
     update_body = {
         'majorDimension': 'ROWS',
         'values': table_values
     }
+    current_len_table = len(table_values)
+    if current_len_table > SHEET_GRID_PROPERTY_ROW_COUNT:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=ROW_COUNT_ERROR.format(count=current_len_table)
+        )
+    current_max_column_table = max(map(len, table_values))
+    if current_max_column_table > SHEET_GRID_PROPERTY_COLUMN_COUNT:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=COLUMN_COUNT_ERROR.format(count=current_max_column_table)
+        )
     await wrapper_services.as_service_account(
         service.spreadsheets.values.update(
             spreadsheetId=spreadsheetid,
-            range='A1:E30',
+            range=f'R1C1:R{current_len_table}C{current_max_column_table}',
             valueInputOption='USER_ENTERED',
             json=update_body
         )
     )
-# https://github.com/DoeryMK/cat_charity_fund/blob/master/app/services/google_api.py
