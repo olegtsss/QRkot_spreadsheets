@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 from http import HTTPStatus
 
@@ -8,11 +9,6 @@ from app.core.config import settings
 
 
 FORMAT = '%Y/%m/%d %H:%M:%S'
-PROPERTY_TITLE = 'Отчет от {now_datetime}'
-PROPERTY_LOCALE = 'ru_RU'
-SHEET_TYPE = 'GRID'
-SHEET_ID = 0
-SHEET_TITLE = 'Лист1'
 SHEET_GRID_PROPERTY_ROW_COUNT = 100
 SHEET_GRID_PROPERTY_COLUMN_COUNT = 11
 ROW_COUNT_ERROR = (
@@ -26,13 +22,15 @@ COLUMN_COUNT_ERROR = (
 )
 SPREADSHEET_BODY = dict(
     properties=dict(
-        title=PROPERTY_TITLE,
-        locale=PROPERTY_LOCALE
+        title='Отчет от {now_datetime}'.format(
+            now_datetime=datetime.now().strftime(FORMAT)
+        ),
+        locale='ru_RU'
     ),
     sheets=[dict(properties=dict(
-        sheetType=SHEET_TYPE,
-        sheetId=SHEET_ID,
-        title=SHEET_TITLE,
+        sheetType='GRID',
+        sheetId=0,
+        title='Лист1',
         gridProperties=dict(
             rowCount=SHEET_GRID_PROPERTY_ROW_COUNT,
             columnCount=SHEET_GRID_PROPERTY_COLUMN_COUNT
@@ -46,18 +44,11 @@ TABLE_VALUE = [
 ]
 
 
-class GoogleException(Exception):
-    pass
-
-
 async def spreadsheets_create(
     wrapper_services: Aiogoogle,
     spreadsheet_body: str = SPREADSHEET_BODY
 ) -> str:
     service = await wrapper_services.discover('sheets', 'v4')
-    spreadsheet_body['properties']['title'].format(
-        now_datetime=datetime.now().strftime(FORMAT)
-    )
     response = await wrapper_services.as_service_account(
         service.spreadsheets.create(json=spreadsheet_body)
     )
@@ -88,30 +79,39 @@ async def spreadsheets_update_value(
         charity_projects: list,
         wrapper_services: Aiogoogle
 ) -> None:
+    charity_projects = sorted(
+        [
+            (
+                charity_project.name,
+                str(charity_project.close_date - charity_project.create_date),
+                charity_project.description
+            )
+            for charity_project in charity_projects
+        ], key=lambda charity_project: charity_project[1]
+    )
     service = await wrapper_services.discover('sheets', 'v4')
+    table_value = copy.deepcopy(TABLE_VALUE)
+    table_value[0].append(datetime.now().strftime(FORMAT))
     table_values = [
-        *TABLE_VALUE,
+        *table_value,
         *[
             list(map(str, charity_project))
             for charity_project in charity_projects
         ]
     ]
-    table_values[0].append(datetime.now().strftime(FORMAT))
     update_body = {
         'majorDimension': 'ROWS',
         'values': table_values
     }
     current_len_table = len(table_values)
     if current_len_table > SHEET_GRID_PROPERTY_ROW_COUNT:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=ROW_COUNT_ERROR.format(count=current_len_table)
+        raise ValueError(
+            ROW_COUNT_ERROR.format(count=current_len_table)
         )
     current_max_column_table = max(map(len, table_values))
     if current_max_column_table > SHEET_GRID_PROPERTY_COLUMN_COUNT:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=COLUMN_COUNT_ERROR.format(count=current_max_column_table)
+        raise ValueError(
+            COLUMN_COUNT_ERROR.format(count=current_max_column_table)
         )
     await wrapper_services.as_service_account(
         service.spreadsheets.values.update(

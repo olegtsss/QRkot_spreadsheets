@@ -21,7 +21,7 @@ class CRUDCharityProject(CRUDBase):
         )
         return charity_project_id.scalars().first()
 
-    async def get_projects_by_completion_rate(
+    async def get_projects(
             self,
             session: AsyncSession,
     ) -> List:
@@ -32,17 +32,7 @@ class CRUDCharityProject(CRUDBase):
                 CharityProject.fully_invested
             )
         )
-        return sorted(
-            [
-                (
-                    charity_project.name,
-                    str(
-                        charity_project.close_date - charity_project.create_date
-                    ),
-                    charity_project.description
-                ) for charity_project in charity_projects.scalars().all()
-            ], key=lambda charity_project: charity_project[1]
-        )
+        return charity_projects.scalars().all()
 
 
 charity_project_crud = CRUDCharityProject(CharityProject)
