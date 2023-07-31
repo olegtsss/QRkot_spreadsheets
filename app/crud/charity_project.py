@@ -32,7 +32,17 @@ class CRUDCharityProject(CRUDBase):
                 CharityProject.fully_invested
             )
         )
-        return charity_projects.scalars().all()
+        return sorted(
+            [
+                (
+                    charity_project.name,
+                    str(
+                        charity_project.close_date - charity_project.create_date
+                    ),
+                    charity_project.description
+                ) for charity_project in charity_projects.scalars().all()
+            ], key=lambda charity_project: charity_project[1]
+        )
 
 
 charity_project_crud = CRUDCharityProject(CharityProject)

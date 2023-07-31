@@ -1,7 +1,8 @@
-from typing import List
+from http import HTTPStatus
+from typing import Dict
 
 from aiogoogle import Aiogoogle
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
@@ -9,9 +10,13 @@ from app.core.google_client import get_service
 from app.core.user import current_superuser
 from app.crud.charity_project import charity_project_crud
 from app.services.google_api import (
-    set_user_permissions, spreadsheets_create, spreadsheets_update_value,
-    take_charity_projects_by_shorts
+    GoogleException, set_user_permissions, spreadsheets_create,
+    spreadsheets_update_value
 )
+
+
+ERROR = 'Ошибка: {error}'
+SPREAD_SHEET_URL = 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}'
 
 
 router = APIRouter()
@@ -19,7 +24,7 @@ router = APIRouter()
 
 @router.post(
     '/',
-    response_model=List,
+    response_model=Dict,
     dependencies=[Depends(current_superuser)],
 )
 async def get_report(
@@ -30,15 +35,17 @@ async def get_report(
     charity_projects = (
         await charity_project_crud.get_projects_by_completion_rate(session)
     )
-    results = [
-        (
-            charity_project.name,
-            str(charity_project.close_date - charity_project.create_date),
-            charity_project.description
-        ) for charity_project in charity_projects
-    ]
-    results = sorted(results, key=take_charity_projects_by_shorts)
-    spreadsheetid = await spreadsheets_create(wrapper_services)
-    await set_user_permissions(spreadsheetid, wrapper_services)
-    await spreadsheets_update_value(spreadsheetid, results, wrapper_services)
-    return results
+    spreadsheet_id = await spreadsheets_create(wrapper_services)
+    await set_user_permissions(spreadsheet_id, wrapper_services)
+    try:
+        await spreadsheets_update_value(
+            spreadsheet_id, charity_projects, wrapper_services
+        )
+    except GoogleException as error:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=ERROR.format(error=error)
+        )
+    return {
+        'url': SPREAD_SHEET_URL.format(spreadsheet_id=spreadsheet_id)
+    }
