@@ -2,6 +2,7 @@ from datetime import datetime
 from http import HTTPStatus
 
 from aiogoogle import Aiogoogle
+from fastapi import HTTPException
 
 from app.core.config import settings
 
@@ -39,9 +40,9 @@ SPREADSHEET_BODY = dict(
     ))]
 )
 TABLE_VALUE = [
-        ['Отчет от'],
-        ['Топ проектов по скорости закрытия'],
-        ['Название проекта', 'Время сбора', 'Описание']
+    ['Отчет от'],
+    ['Топ проектов по скорости закрытия'],
+    ['Название проекта', 'Время сбора', 'Описание']
 ]
 
 
@@ -51,7 +52,7 @@ class GoogleException(Exception):
 
 async def spreadsheets_create(
     wrapper_services: Aiogoogle,
-    spreadsheet_body: str=SPREADSHEET_BODY
+    spreadsheet_body: str = SPREADSHEET_BODY
 ) -> str:
     service = await wrapper_services.discover('sheets', 'v4')
     spreadsheet_body['properties']['title'].format(
@@ -60,8 +61,7 @@ async def spreadsheets_create(
     response = await wrapper_services.as_service_account(
         service.spreadsheets.create(json=spreadsheet_body)
     )
-    spreadsheet_id = response['spreadsheetId']
-    return spreadsheet_id
+    return response['spreadsheetId']
 
 
 async def set_user_permissions(
