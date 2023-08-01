@@ -1,6 +1,6 @@
 # Cсылка на развернутый проект
 
-https://qrkot.git.olegtsss.ru
+https://qrkot.git.olegtsss.ru:5000
 
 # Описание проекта QRKot:
 
@@ -60,6 +60,7 @@ uvicorn app.main:app
 
 ## Документация:
 [http://127.0.0.1:8000/docs]: docs
+
 [http://127.0.0.1:8000/redoc]: redoc
 
 
