@@ -1,3 +1,7 @@
+# Cсылка на развернутый проект
+
+https://qrkot.git.olegtsss.ru
+
 # Описание проекта QRKot:
 
 Фонд собирает пожертвования на различные целевые проекты: на медицинское обслуживание нуждающихся хвостатых, на обустройство кошачьей колонии в подвале, на корм оставшимся без попечения кошкам — на любые цели, связанные с поддержкой кошачьей популяции.
@@ -73,7 +77,7 @@ FIRST_SUPERUSER_PASSWORD=123
 ```
 
 ### Разработчик:
-[Тимощук Олег](https://github.com/olegtsss)
+[olegtsss](https://github.com/olegtsss)
 
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=whte)
