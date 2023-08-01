@@ -131,4 +131,3 @@ dmypy.json
 # .idea
 .idea
 requests.http
-fastapi.db
