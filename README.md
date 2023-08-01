@@ -1,6 +1,6 @@
 # Cсылка на развернутый проект
 
-https://qrkot.git.olegtsss.ru:5000
+https://qrkot.git.olegtsss.ru:5000/docs
 
 # Описание проекта QRKot:
 
