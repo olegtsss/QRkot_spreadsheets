@@ -42,8 +42,12 @@ TABLE_VALUE = [
 
 async def spreadsheets_create(
     wrapper_services: Aiogoogle,
-    spreadsheet_body: Dict = copy.deepcopy(SPREADSHEET_BODY)
+    spreadsheet_body: Dict = None
 ) -> str:
+    spreadsheet_body = (
+        copy.deepcopy(SPREADSHEET_BODY) if spreadsheet_body is None
+        else spreadsheet_body
+    )
     service = await wrapper_services.discover('sheets', 'v4')
     spreadsheet_body['properties']['title'] = (
         f'Отчет от {datetime.now().strftime(FORMAT)}'
