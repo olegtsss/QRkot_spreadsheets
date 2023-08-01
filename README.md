@@ -59,9 +59,9 @@ uvicorn app.main:app
 ```
 
 ## Документация:
-[http://127.0.0.1:8000/docs]: docs
+[http://127.0.0.1:8000/docs]
 
-[http://127.0.0.1:8000/redoc]: redoc
+[http://127.0.0.1:8000/redoc]
 
 
 
