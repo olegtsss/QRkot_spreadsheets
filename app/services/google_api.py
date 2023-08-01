@@ -1,5 +1,6 @@
 import copy
 from datetime import datetime
+from typing import Dict
 
 from aiogoogle import Aiogoogle
 
@@ -41,7 +42,7 @@ TABLE_VALUE = [
 
 async def spreadsheets_create(
     wrapper_services: Aiogoogle,
-    spreadsheet_body: str = SPREADSHEET_BODY
+    spreadsheet_body: Dict = copy.deepcopy(SPREADSHEET_BODY)
 ) -> str:
     service = await wrapper_services.discover('sheets', 'v4')
     spreadsheet_body['properties']['title'] = (
