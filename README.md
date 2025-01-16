@@ -17,8 +17,8 @@ Python 3.7, FastAPI 0.78.0
 ### Как запустить проект:
 
 ```
-git clone https://github.com/olegtsss/cat_charity_fund.git
-cd cat_charity_fund
+git clone https://github.com/olegtsss/QRkot_spreadsheets.git
+cd QRkot_spreadsheets/
 python -m venv venv
 . venv/Scripts/activate
 python -m pip install --upgrade pip
